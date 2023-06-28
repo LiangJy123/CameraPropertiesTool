@@ -7,7 +7,7 @@
   IgnorableNamespaces="uap mp">
 
   <Identity
-    Name="501598cc-8587-4eab-8573-8bfbda8bf5c0"
+    Name="CameraPropertiesTool"
     Publisher="CN=JiayuPC"
     Version="1.0.0.0" />
 
@@ -45,5 +45,6 @@
 
   <Capabilities>
     <Capability Name="internetClient" />
+    <DeviceCapability Name="webcam"/>
   </Capabilities>
 </Package>

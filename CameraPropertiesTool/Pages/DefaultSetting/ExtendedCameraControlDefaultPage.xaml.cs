@@ -8,11 +8,10 @@ using System.Threading.Tasks;
 using Windows.Devices.Enumeration;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
-using Windows.Media.Capture;
 using Windows.Media.Capture.Frames;
+using Windows.Media.Capture;
 using Windows.Media.Core;
 using Windows.Media.Playback;
-using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -23,24 +22,34 @@ using Windows.UI.Xaml.Navigation;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=234238
 
-namespace CameraPropertiesTool.Pages.CurrentSetting
+namespace CameraPropertiesTool.Pages.DefaultSetting
 {
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
-    public sealed partial class ExtendedCameraControlPage : Page
+    public sealed partial class ExtendedCameraControlDefaultPage : Page
     {
         string cameraId = null;
         private MediaCapture m_mediaCapture = null;
         private MediaPlayer m_mediaPlayer = null;
-        private Dictionary<ExtendedControlKind, IExtendedPropertyPayload> m_extendedControls = new Dictionary<ExtendedControlKind, IExtendedPropertyPayload>();
+    
 
-        public ExtendedCameraControlPage()
+        private DefaultControlHelper.DefaultControlManager m_controlManager = null;
+        //private DefaultControlHelper.DefaultController m_contrastController = null;
+        //private DefaultControlHelper.DefaultController m_brightnessController = null;
+        private DefaultControlHelper.DefaultController m_backgroundBlurController = null;
+        private DefaultControlHelper.DefaultController m_ECController = null;
+        private DefaultControlHelper.DefaultController m_AFController = null;
+        //private DefaultControlHelper.DefaultController m_evCompController = null;
+
+        public ExtendedCameraControlDefaultPage()
         {
             this.InitializeComponent();
             InitAsync();
-
         }
+        
+
+   
 
         public async void InitAsync()
         {
@@ -114,6 +123,7 @@ namespace CameraPropertiesTool.Pages.CurrentSetting
                 m_mediaPlayer.AutoPlay = true;
                 m_mediaPlayer.Source = MediaSource.CreateFromMediaFrameSource(frameSource);
                 UIMediaPlayerElement.SetMediaPlayer(m_mediaPlayer);
+                m_controlManager = new DefaultControlHelper.DefaultControlManager(cameraId);
             }
             catch (Exception ex)
             {
@@ -127,28 +137,25 @@ namespace CameraPropertiesTool.Pages.CurrentSetting
         private void TextOutput(string msg)
         {
             var ignore = Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
-             {
-                 UITextOutput.Text = $"error: {msg}";
-             });
+            {
+                UITextOutput.Text = $"error: {msg}";
+            });
         }
         private async Task<bool> ShowAllSwitchsAsync()
         {
-            if (m_extendedControls.Count == 0)
-            {
-                return false;
-            }
+           
 
             // Updating UI elements
             await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
             {
-                
+
                 {
                     DefaultBlurToggle.Toggled -= DefaultBlurToggle_Toggled;
                     DefaultBlurToggle.Visibility = Visibility.Visible;
-                    IExtendedPropertyPayload payload = null;
-                    if (m_extendedControls.TryGetValue(ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_BACKGROUNDSEGMENTATION, out payload) && payload != null)
+
+                    if (m_backgroundBlurController != null && m_backgroundBlurController.HasDefaultValueStored() == true)
                     {
-                        DefaultBlurToggle.IsOn = (payload.Flags != 0);
+                        DefaultBlurToggle.IsOn =(m_backgroundBlurController.DefaultValue != 0);
                     }
                     else
                     {
@@ -161,10 +168,10 @@ namespace CameraPropertiesTool.Pages.CurrentSetting
                 {
                     DefaultECToggle.Toggled -= DefaultECToggle_Toggled;
                     DefaultECToggle.Visibility = Visibility.Visible;
-                    IExtendedPropertyPayload payload = null;
-                    if (m_extendedControls.TryGetValue(ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_EYEGAZECORRECTION, out payload) && payload != null)
+
+                    if (m_ECController != null && m_ECController.HasDefaultValueStored() == true)
                     {
-                        DefaultECToggle.IsOn = (payload.Flags != 0);
+                        DefaultECToggle.IsOn = (m_ECController.DefaultValue != 0);
                     }
                     else
                     {
@@ -176,10 +183,10 @@ namespace CameraPropertiesTool.Pages.CurrentSetting
                 {
                     DefaultAFToggle.Toggled -= DefaultECToggle_Toggled;
                     DefaultAFToggle.Visibility = Visibility.Visible;
-                    IExtendedPropertyPayload payload = null;
-                    if (m_extendedControls.TryGetValue(ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_DIGITALWINDOW, out payload) && payload != null)
+
+                    if (m_AFController != null && m_AFController.HasDefaultValueStored() == true)
                     {
-                        DefaultAFToggle.IsOn = (payload.Flags != 0);
+                        DefaultAFToggle.IsOn = (m_AFController.DefaultValue != 0);
                     }
                     else
                     {
@@ -199,7 +206,7 @@ namespace CameraPropertiesTool.Pages.CurrentSetting
 
         private async Task<bool> ListAllPropertiesAsync()
         {
-            if (m_mediaCapture == null || m_mediaCapture.VideoDeviceController == null)
+            if (m_mediaCapture == null || m_controlManager == null)
             {
                 var ignore = Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
                 {
@@ -208,41 +215,23 @@ namespace CameraPropertiesTool.Pages.CurrentSetting
                 return false;
             }
 
-            m_extendedControls.Clear();
 
-            ExtendedControlKind[] properties = (ExtendedControlKind[])Enum.GetValues(typeof(ExtendedControlKind));
+          
 
-            var output = "Available properties:\n";
-            foreach (ExtendedControlKind p in properties)
-            {
-                bool isControlSupported = false;
-                IExtendedPropertyPayload getPayload = null;
-                try
-                {
-                    getPayload = PropertyInquiry.GetExtendedControl(m_mediaCapture.VideoDeviceController, p);
-                }
-                catch (ArgumentException)
-                {
-                    continue;
-                }
-                isControlSupported = (getPayload != null);
-                m_extendedControls.Add(p, getPayload);
-                if (isControlSupported == true)
-                {
-                    output += p.ToString() + "\n";
-                }
-            }
+            m_backgroundBlurController = m_controlManager.CreateController(DefaultControlHelper.DefaultControllerType.ExtendedCameraControl, (uint)ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_BACKGROUNDSEGMENTATION);
 
+            m_ECController = m_controlManager.CreateController(DefaultControlHelper.DefaultControllerType.ExtendedCameraControl, (uint)ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_EYEGAZECORRECTION);
+
+            m_AFController = m_controlManager.CreateController(DefaultControlHelper.DefaultControllerType.ExtendedCameraControl, (uint)ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_DIGITALWINDOW);
+
+            if (m_backgroundBlurController.HasDefaultValueStored() ==false && m_ECController.HasDefaultValueStored() == false && m_AFController.HasDefaultValueStored() == false)
             {
                 var ignore = Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
                 {
-                    UITextOutput.Text = output;
+                    UITextOutput.Text = $"message:You might need to add reg key (SCSVCamPfn) at HKLM\\SYSTEM\\CurrentControlSet\\Control\\DeviceClasses\\{{e5323777-f976-4f5b-9b55-b94699c46e44}}\\<camera symlink>\\#GLOBAL\\Device Parameters .This application's package family name is the value. Type is REG_SZ ";
                 });
+               
             }
-
-
-
-
 
             return true;
         }
@@ -276,16 +265,16 @@ namespace CameraPropertiesTool.Pages.CurrentSetting
         }
 
 
-       
-     
+
+
 
         private void DefaultAFToggle_Toggled(object sender, RoutedEventArgs e)
         {
             try
             {
                 int flags = (int)((DefaultAFToggle.IsOn == true) ? AutoFramingCapabilityKind.KSCAMERA_EXTENDEDPROP_DIGITALWINDOW_AUTOFACEFRAMING : AutoFramingCapabilityKind.KSCAMERA_EXTENDEDPROP_DIGITALWINDOW_MANUAL);
-            
-                PropertyInquiry.SetExtendedControlFlags(m_mediaCapture.VideoDeviceController, ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_DIGITALWINDOW, (uint)flags);
+
+                m_AFController.DefaultValue = flags;
             }
             catch (Exception ex)
             {
@@ -294,14 +283,15 @@ namespace CameraPropertiesTool.Pages.CurrentSetting
 
         }
 
-     
+
         private void DefaultBlurToggle_Toggled(object sender, RoutedEventArgs e)
         {
             try
             {
                 //int flags = (int)((DefaultBlurToggle.IsOn == true) ? BackgroundSegmentationCapabilityKind.KSCAMERA_EXTENDEDPROP_BACKGROUNDSEGMENTATION_BLUR : BackgroundSegmentationCapabilityKind.KSCAMERA_EXTENDEDPROP_BACKGROUNDSEGMENTATION_BLUR | BackgroundSegmentationCapabilityKind.KSCAMERA_EXTENDEDPROP_BACKGROUNDSEGMENTATION_SHALLOWFOCUS);
                 int flags = (int)((DefaultBlurToggle.IsOn == true) ? BackgroundSegmentationCapabilityKind.KSCAMERA_EXTENDEDPROP_BACKGROUNDSEGMENTATION_BLUR : BackgroundSegmentationCapabilityKind.KSCAMERA_EXTENDEDPROP_BACKGROUNDSEGMENTATION_OFF);
-                PropertyInquiry.SetExtendedControlFlags(m_mediaCapture.VideoDeviceController, ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_BACKGROUNDSEGMENTATION, (uint)flags);
+                m_backgroundBlurController.DefaultValue = flags;
+               
             }
             catch (Exception ex)
             {
@@ -314,8 +304,8 @@ namespace CameraPropertiesTool.Pages.CurrentSetting
             try
             {
                 int flags = (int)((DefaultECToggle.IsOn == true) ? EyeGazeCorrectionCapabilityKind.KSCAMERA_EXTENDEDPROP_EYEGAZECORRECTION_ON : EyeGazeCorrectionCapabilityKind.KSCAMERA_EXTENDEDPROP_EYEGAZECORRECTION_OFF);
-               
-                PropertyInquiry.SetExtendedControlFlags(m_mediaCapture.VideoDeviceController, ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_EYEGAZECORRECTION, (uint)flags);
+
+                m_ECController.DefaultValue = flags;
             }
             catch (Exception ex)
             {

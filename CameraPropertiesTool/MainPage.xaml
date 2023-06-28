@@ -11,7 +11,7 @@
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="auto"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
@@ -23,15 +23,15 @@
                 <NavigationViewItem Content="CameraControl" x:Name="CameraControl" />
                 <NavigationViewItem Content="ExtendedCameraControl" x:Name="ExtendedCameraControl" />
                 <NavigationViewItemHeader Content="Default Setting"/>
-                <NavigationViewItem Content="VideoProcAmp" x:Name="DefaultVideoProcAmp" />
-                <NavigationViewItem Content="CameraControl" x:Name="DefaultCameraControl" />
-                <NavigationViewItem Content="ExtendedCameraControl" x:Name="DefaultExtendedCameraControl" />
+                <NavigationViewItem Content="DefaultVideoProcAmp" x:Name="DefaultVideoProcAmp" />
+                <NavigationViewItem Content="DefaultCameraControl" x:Name="DefaultCameraControl" />
+                <NavigationViewItem Content="DefaultExtendedCameraControl" x:Name="DefaultExtendedCameraControl" />
             </NavigationView.MenuItems>
         </NavigationView>
         <!-- 主内容区域 -->
-        <Frame x:Name="MainFrame" Grid.Row="1"  />
+        <Frame x:Name="MainFrame" Grid.Column="1"  />
 
-        <VisualStateManager.VisualStateGroups>
+        <!--<VisualStateManager.VisualStateGroups>
             <VisualStateGroup>
                 <VisualState>
                     <VisualState.StateTriggers>
@@ -44,7 +44,7 @@
                     </VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>
-        </VisualStateManager.VisualStateGroups>
+        </VisualStateManager.VisualStateGroups>-->
 
 
 

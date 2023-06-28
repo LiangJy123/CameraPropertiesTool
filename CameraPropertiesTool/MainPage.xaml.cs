@@ -1,4 +1,5 @@
 ﻿using CameraPropertiesTool.Pages.CurrentSetting;
+using CameraPropertiesTool.Pages.DefaultSetting;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -52,6 +53,11 @@ namespace CameraPropertiesTool
                         //    break;
                         case "ExtendedCameraControl":
                             MainFrame.Navigate(typeof(ExtendedCameraControlPage));
+                            break;
+                        case "DefaultExtendedCameraControl":
+                            MainFrame.Navigate(typeof(ExtendedCameraControlDefaultPage));
+                            break ;
+                        default:
                             break;
                             // 添加更多页面的导航逻辑
                     }

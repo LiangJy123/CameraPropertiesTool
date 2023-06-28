@@ -212,7 +212,11 @@ namespace winrt::CameraKsPropertyHelper::implementation
 
 
             default:
-                throw hresult_invalid_argument(L"unexpected extendedControlKind passed: " + to_hstring((int32_t)extendedControlKind));
+            {
+                payload = make<BasicExtendedPropertyPayload>(propertyValueResult, extendedControlKind);
+                break;
+            }
+                //throw hresult_invalid_argument(L"unexpected extendedControlKind passed: " + to_hstring((int32_t)extendedControlKind));
         }
 
         return payload;

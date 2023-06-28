@@ -125,6 +125,9 @@
     <Compile Include="Pages\CurrentSetting\ExtendedCameraControlPage.xaml.cs">
       <DependentUpon>ExtendedCameraControlPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Pages\DefaultSetting\ExtendedCameraControlDefaultPage.xaml.cs">
+      <DependentUpon>ExtendedCameraControlDefaultPage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -155,14 +158,26 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Pages\DefaultSetting\ExtendedCameraControlDefaultPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
       <Version>6.2.14</Version>
     </PackageReference>
   </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
-    <Folder Include="Pages\DefaultSetting\" />
+    <ProjectReference Include="..\CameraKsPropertyHelper\CameraKsPropertyHelper.vcxproj">
+      <Project>{3e174357-0294-40f1-ba11-7330617ddbb5}</Project>
+      <Name>CameraKsPropertyHelper</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DefaultControlHelper\DefaultControlHelper.vcxproj">
+      <Project>{3ac253a5-a383-49d8-acc0-102c1e46e42f}</Project>
+      <Name>DefaultControlHelper_WinRT</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
