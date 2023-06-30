@@ -22,6 +22,7 @@
                 <NavigationViewItem Content="VideoProcAmp" x:Name="VideoProcAmp" />
                 <NavigationViewItem Content="CameraControl" x:Name="CameraControl" />
                 <NavigationViewItem Content="ExtendedCameraControl" x:Name="ExtendedCameraControl" />
+                <NavigationViewItem Content="WindowsStudioEffectsControl" x:Name="WindowsStudioEffectsPageControl" />
                 <NavigationViewItemHeader Content="Default Setting"/>
                 <NavigationViewItem Content="DefaultVideoProcAmp" x:Name="DefaultVideoProcAmp" />
                 <NavigationViewItem Content="DefaultCameraControl" x:Name="DefaultCameraControl" />

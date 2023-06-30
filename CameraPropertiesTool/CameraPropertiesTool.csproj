@@ -125,6 +125,9 @@
     <Compile Include="Pages\CurrentSetting\ExtendedCameraControlPage.xaml.cs">
       <DependentUpon>ExtendedCameraControlPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Pages\CurrentSetting\WindowsStudioEffectsPage.xaml.cs">
+      <DependentUpon>WindowsStudioEffectsPage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Pages\DefaultSetting\ExtendedCameraControlDefaultPage.xaml.cs">
       <DependentUpon>ExtendedCameraControlDefaultPage.xaml</DependentUpon>
     </Compile>
@@ -155,6 +158,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Pages\CurrentSetting\ExtendedCameraControlPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\CurrentSetting\WindowsStudioEffectsPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

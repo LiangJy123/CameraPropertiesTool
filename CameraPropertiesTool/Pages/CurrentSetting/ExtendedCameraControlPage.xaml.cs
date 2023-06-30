@@ -141,53 +141,29 @@ namespace CameraPropertiesTool.Pages.CurrentSetting
             // Updating UI elements
             await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
             {
-                
                 {
-                    DefaultBlurToggle.Toggled -= DefaultBlurToggle_Toggled;
-                    DefaultBlurToggle.Visibility = Visibility.Visible;
-                    IExtendedPropertyPayload payload = null;
-                    if (m_extendedControls.TryGetValue(ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_BACKGROUNDSEGMENTATION, out payload) && payload != null)
-                    {
-                        DefaultBlurToggle.IsOn = (payload.Flags != 0);
-                    }
-                    else
-                    {
-                        DefaultBlurToggle.IsEnabled = false;
-                    }
+                    ExtendedControlKind[] properties = (ExtendedControlKind[])Enum.GetValues(typeof(ExtendedControlKind));
+                    foreach (var p in properties)
+                    { 
+                        IExtendedPropertyPayload payload = null;
+                        if (m_extendedControls.TryGetValue(p, out payload))
+                        {
+                            if (payload == null)
+                            {
+                                continue;
+                            }
+                            ComboBoxItem comboBoxItem = new ComboBoxItem(); 
+                            comboBoxItem.Content = p;
+                            comboBoxItem.Tag = (int)p; 
+                            DropDownList.Items.Add(comboBoxItem);
+                        }
 
-                    DefaultBlurToggle.Toggled += DefaultBlurToggle_Toggled;
+                    }
+                    DropDownList.Visibility = Visibility.Visible;
+
                 }
 
-                {
-                    DefaultECToggle.Toggled -= DefaultECToggle_Toggled;
-                    DefaultECToggle.Visibility = Visibility.Visible;
-                    IExtendedPropertyPayload payload = null;
-                    if (m_extendedControls.TryGetValue(ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_EYEGAZECORRECTION, out payload) && payload != null)
-                    {
-                        DefaultECToggle.IsOn = (payload.Flags != 0);
-                    }
-                    else
-                    {
-                        DefaultECToggle.IsEnabled = false;
-                    }
-
-                    DefaultECToggle.Toggled += DefaultBlurToggle_Toggled;
-                }
-                {
-                    DefaultAFToggle.Toggled -= DefaultECToggle_Toggled;
-                    DefaultAFToggle.Visibility = Visibility.Visible;
-                    IExtendedPropertyPayload payload = null;
-                    if (m_extendedControls.TryGetValue(ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_DIGITALWINDOW, out payload) && payload != null)
-                    {
-                        DefaultAFToggle.IsOn = (payload.Flags != 0);
-                    }
-                    else
-                    {
-                        DefaultAFToggle.IsEnabled = false;
-                    }
-
-                    DefaultAFToggle.Toggled += DefaultBlurToggle_Toggled;
-                }
+         
 
 
             });
@@ -212,7 +188,7 @@ namespace CameraPropertiesTool.Pages.CurrentSetting
 
             ExtendedControlKind[] properties = (ExtendedControlKind[])Enum.GetValues(typeof(ExtendedControlKind));
 
-            var output = "Available properties:\n";
+           
             foreach (ExtendedControlKind p in properties)
             {
                 bool isControlSupported = false;
@@ -227,21 +203,8 @@ namespace CameraPropertiesTool.Pages.CurrentSetting
                 }
                 isControlSupported = (getPayload != null);
                 m_extendedControls.Add(p, getPayload);
-                if (isControlSupported == true)
-                {
-                    output += p.ToString() + "\n";
-                }
+               
             }
-
-            {
-                var ignore = Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
-                {
-                    UITextOutput.Text = output;
-                });
-            }
-
-
-
 
 
             return true;
@@ -275,57 +238,188 @@ namespace CameraPropertiesTool.Pages.CurrentSetting
             return "";
         }
 
-
-       
-     
-
-        private void DefaultAFToggle_Toggled(object sender, RoutedEventArgs e)
+        private void DropDownList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            try
+            if (m_mediaCapture == null || m_mediaCapture.VideoDeviceController == null)
             {
-                int flags = (int)((DefaultAFToggle.IsOn == true) ? AutoFramingCapabilityKind.KSCAMERA_EXTENDEDPROP_DIGITALWINDOW_AUTOFACEFRAMING : AutoFramingCapabilityKind.KSCAMERA_EXTENDEDPROP_DIGITALWINDOW_MANUAL);
-            
-                PropertyInquiry.SetExtendedControlFlags(m_mediaCapture.VideoDeviceController, ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_DIGITALWINDOW, (uint)flags);
+                var ignore = Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+                {
+                    UITextOutput.Text = $"error:mediaCapture not available";
+                });
+                return ;
+            }
+
+            var comboBoxItem = DropDownList.SelectedItem as ComboBoxItem;
+            ExtendedControlKind kind = (ExtendedControlKind)comboBoxItem.Tag;
+            try {
+                var getPayload = PropertyInquiry.GetExtendedControl(m_mediaCapture.VideoDeviceController, kind);
+                UITextOutput.Text = PayloadtoString(getPayload);
+
             }
             catch (Exception ex)
             {
-                UITextOutput.Text = $"error: {ex.Message}";
+                UITextOutput.Text = $"error:" + ex.Message;
             }
 
         }
 
-     
-        private void DefaultBlurToggle_Toggled(object sender, RoutedEventArgs e)
+        private string PayloadtoString(IExtendedPropertyPayload payload)
         {
-            try
+            string outputstring = payload.ExtendedControlKind + ":\n";
+            var cap = Convert.ToString((long)payload.Capability, 2).PadLeft(16, '0');
+            var flag = Convert.ToString((long)payload.Flags, 2).PadLeft(16, '0');
+            outputstring += "Capability:  0x" + cap + "\n" + "Flags:    0x" + flag + "\n";
+            switch (payload.ExtendedControlKind)
             {
-                //int flags = (int)((DefaultBlurToggle.IsOn == true) ? BackgroundSegmentationCapabilityKind.KSCAMERA_EXTENDEDPROP_BACKGROUNDSEGMENTATION_BLUR : BackgroundSegmentationCapabilityKind.KSCAMERA_EXTENDEDPROP_BACKGROUNDSEGMENTATION_BLUR | BackgroundSegmentationCapabilityKind.KSCAMERA_EXTENDEDPROP_BACKGROUNDSEGMENTATION_SHALLOWFOCUS);
-                int flags = (int)((DefaultBlurToggle.IsOn == true) ? BackgroundSegmentationCapabilityKind.KSCAMERA_EXTENDEDPROP_BACKGROUNDSEGMENTATION_BLUR : BackgroundSegmentationCapabilityKind.KSCAMERA_EXTENDEDPROP_BACKGROUNDSEGMENTATION_OFF);
-                PropertyInquiry.SetExtendedControlFlags(m_mediaCapture.VideoDeviceController, ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_BACKGROUNDSEGMENTATION, (uint)flags);
-            }
-            catch (Exception ex)
-            {
-                UITextOutput.Text = $"error: {ex.Message}";
-            }
-        }
+                case ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_PHOTOMODE:
+                    
+                    // 处理 KSPROPERTY_CAMERACONTROL_EXTENDED_PHOTOMODE 的逻辑
+                    break;
+                case ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_PHOTOFRAMERATE:
+                    // 处理 KSPROPERTY_CAMERACONTROL_EXTENDED_PHOTOFRAMERATE 的逻辑
+                    break;
+                case ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_PHOTOMAXFRAMERATE:
+                    // 处理 KSPROPERTY_CAMERACONTROL_EXTENDED_PHOTOMAXFRAMERATE 的逻辑
+                    break;
+                case ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_PHOTOTRIGGERTIME:
+                    // 处理 KSPROPERTY_CAMERACONTROL_EXTENDED_PHOTOTRIGGERTIME 的逻辑
+                    break;
+                case ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_WARMSTART:
+                    // 处理 KSPROPERTY_CAMERACONTROL_EXTENDED_WARMSTART 的逻辑
+                    break;
+                case ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_MAXVIDFPS_PHOTORES:
+                    // 处理 KSPROPERTY_CAMERACONTROL_EXTENDED_MAXVIDFPS_PHOTORES 的逻辑
+                    break;
+                case ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_PHOTOTHUMBNAIL:
+                    // 处理 KSPROPERTY_CAMERACONTROL_EXTENDED_PHOTOTHUMBNAIL 的逻辑
+                    break;
+                case ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_SCENEMODE:
+                    // 处理 KSPROPERTY_CAMERACONTROL_EXTENDED_SCENEMODE 的逻辑
+                    break;
+                case ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_TORCHMODE:
+                    // 处理 KSPROPERTY_CAMERACONTROL_EXTENDED_TORCHMODE 的逻辑
+                    break;
+                case ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_FLASHMODE:
+                    // 处理 KSPROPERTY_CAMERACONTROL_EXTENDED_FLASHMODE 的逻辑
+                    break;
+                case ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_OPTIMIZATIONHINT:
+                    // 处理 KSPROPERTY_CAMERACONTROL_EXTENDED_OPTIMIZATIONHINT 的逻辑
+                    break;
+                case ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_WHITEBALANCEMODE:
+                    // 处理 KSPROPERTY_CAMERACONTROL_EXTENDED_WHITEBALANCEMODE 的逻辑
+                    break;
+                case ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_EXPOSUREMODE:
+                    // 处理 KSPROPERTY_CAMERACONTROL_EXTENDED_EXPOSUREMODE 的逻辑
+                    break;
+                case ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_FOCUSMODE:
+                    // 处理 KSPROPERTY_CAMERACONTROL_EXTENDED_FOCUSMODE 的逻辑
+                    break;
+                case ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_ISO:
+                    // 处理 KSPROPERTY_CAMERACONTROL_EXTENDED_ISO 的逻辑
+                    break;
+                case ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_FIELDOFVIEW:
+                    // 处理 KSPROPERTY_CAMERACONTROL_EXTENDED_FIELDOFVIEW 的逻辑
+                    break;
+                case ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_EVCOMPENSATION:
+                    // 处理 KSPROPERTY_CAMERACONTROL_EXTENDED_EVCOMPENSATION 的逻辑
+                    break;
+                case ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_CAMERAANGLEOFFSET:
+                    // 处理 KSPROPERTY_CAMERACONTROL_EXTENDED_CAMERAANGLEOFFSET 的逻辑
+                    break;
+                case ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_METADATA:
+                    // 处理 KSPROPERTY_CAMERACONTROL_EXTENDED_METADATA 的逻辑
+                    break;
+                case ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_FOCUSPRIORITY:
+                    // 处理 KSPROPERTY_CAMERACONTROL_EXTENDED_FOCUSPRIORITY 的逻辑
+                    break;
+                case ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_FOCUSSTATE:
+                    // 处理 KSPROPERTY_CAMERACONTROL_EXTENDED_FOCUSSTATE 的逻辑
+                    break;
+                case ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_ROI_CONFIGCAPS:
+                    // 处理 KSPROPERTY_CAMERACONTROL_EXTENDED_ROI_CONFIGCAPS 的逻辑
+                    break;
+                case ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_ROI_ISPCONTROL:
+                    // 处理 KSPROPERTY_CAMERACONTROL_EXTENDED_ROI_ISPCONTROL 的逻辑
+                    break;
+                case ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_PHOTOCONFIRMATION:
+                    // 处理 KSPROPERTY_CAMERACONTROL_EXTENDED_PHOTOCONFIRMATION 的逻辑
+                    break;
+                case ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_ZOOM:
+                    // 处理 KSPROPERTY_CAMERACONTROL_EXTENDED_ZOOM 的逻辑
+                    break;
+                case ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_MCC:
+                    // 处理 KSPROPERTY_CAMERACONTROL_EXTENDED_MCC 的逻辑
+                    break;
+                case ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_ISO_ADVANCED:
+                    // 处理 KSPROPERTY_CAMERACONTROL_EXTENDED_ISO_ADVANCED 的逻辑
+                    break;
+                case ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_VIDEOSTABILIZATION:
+                    // 处理 KSPROPERTY_CAMERACONTROL_EXTENDED_VIDEOSTABILIZATION 的逻辑
+                    break;
+                case ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_VFR:
+                    // 处理 KSPROPERTY_CAMERACONTROL_EXTENDED_VFR 的逻辑
+                    break;
+                case ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_FACEDETECTION:
+                    // 处理 KSPROPERTY_CAMERACONTROL_EXTENDED_FACEDETECTION 的逻辑
+                    break;
+                case ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_VIDEOHDR:
+                    // 处理 KSPROPERTY_CAMERACONTROL_EXTENDED_VIDEOHDR 的逻辑
+                    break;
+                case ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_HISTOGRAM:
+                    // 处理 KSPROPERTY_CAMERACONTROL_EXTENDED_HISTOGRAM 的逻辑
+                    break;
+                case ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_OIS:
+                    // 处理 KSPROPERTY_CAMERACONTROL_EXTENDED_OIS 的逻辑
+                    break;
+                case ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_ADVANCEDPHOTO:
+                    // 处理 KSPROPERTY_CAMERACONTROL_EXTENDED_ADVANCEDPHOTO 的逻辑
+                    break;
+                case ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_PROFILE:
+                    // 处理 KSPROPERTY_CAMERACONTROL_EXTENDED_PROFILE 的逻辑
+                    break;
+                case ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_FACEAUTH_MODE:
+                    // 处理 KSPROPERTY_CAMERACONTROL_EXTENDED_FACEAUTH_MODE 的逻辑
+                    break;
+                case ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_SECURE_MODE:
+                    // 处理 KSPROPERTY_CAMERACONTROL_EXTENDED_SECURE_MODE 的逻辑
+                    break;
+                case ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_VIDEOTEMPORALDENOISING:
+                    // 处理 KSPROPERTY_CAMERACONTROL_EXTENDED_VIDEOTEMPORALDENOISING 的逻辑
+                    break;
+                case ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_IRTORCHMODE:
+                    // 处理 KSPROPERTY_CAMERACONTROL_EXTENDED_IRTORCHMODE 的逻辑
+                    break;
+                case ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_RELATIVEPANELOPTIMIZATION:
+                    // 处理 KSPROPERTY_CAMERACONTROL_EXTENDED_RELATIVEPANELOPTIMIZATION 的逻辑
+                    break;
+                case ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_EYEGAZECORRECTION:
+                    // 处理 KSPROPERTY_CAMERACONTROL_EXTENDED_EYEGAZECORRECTION 的逻辑
+                    break;
+                case ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_BACKGROUNDSEGMENTATION:
+                    // 处理 KSPROPERTY_CAMERACONTROL_EXTENDED_BACKGROUNDSEGMENTATION 的逻辑
+                    break;
+                case ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_DIGITALWINDOW_CONFIGCAPS:
 
-        private void DefaultECToggle_Toggled(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                int flags = (int)((DefaultECToggle.IsOn == true) ? EyeGazeCorrectionCapabilityKind.KSCAMERA_EXTENDEDPROP_EYEGAZECORRECTION_ON : EyeGazeCorrectionCapabilityKind.KSCAMERA_EXTENDEDPROP_EYEGAZECORRECTION_OFF);
-               
-                PropertyInquiry.SetExtendedControlFlags(m_mediaCapture.VideoDeviceController, ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_EYEGAZECORRECTION, (uint)flags);
-            }
-            catch (Exception ex)
-            {
-                UITextOutput.Text = $"error: {ex.Message}";
-            }
-        }
+                    var caps = payload as DigitalWindowConfigCapsPayload;
+                    foreach (var conf in caps.ConfigCaps)
+                    {
+                        outputstring +=String.Format("ResolutionX:{0}\nResolutionY:{1}\nPorchLeft:{2}\nPorchRight:{3}\nPorchTop:{4}\nPorchBottom:{5}\nNonUpscalingWindowSize:{6}\n\n", 
+                            conf.ResolutionX ,conf.ResolutionY,conf.PorchLeft,conf.PorchRight, conf.PorchTop, conf.PorchBottom,conf.NonUpscalingWindowSize);
+                        
 
-        private void DefaultEVCompSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
-        {
+                    }
+                    // 处理 KSPROPERTY_CAMERACONTROL_EXTENDED_DIGITALWINDOW_CONFIGCAPS 的逻辑
+                    break;
+                case ExtendedControlKind.KSPROPERTY_CAMERACONTROL_EXTENDED_DIGITALWINDOW:
+                    // 处理 KSPROPERTY_CAMERACONTROL_EXTENDED_DIGITALWINDOW 的逻辑
+                    break;
+                default:
+                    // 默认情况下的逻辑
+                    break;
 
+
+            }
+            return outputstring;
         }
     }
 }

@@ -57,6 +57,9 @@ namespace CameraPropertiesTool
                         case "DefaultExtendedCameraControl":
                             MainFrame.Navigate(typeof(ExtendedCameraControlDefaultPage));
                             break ;
+                        case "WindowsStudioEffectsControl":
+                            MainFrame.Navigate(typeof(WindowsStudioEffectsPage));
+                            break;
                         default:
                             break;
                             // 添加更多页面的导航逻辑

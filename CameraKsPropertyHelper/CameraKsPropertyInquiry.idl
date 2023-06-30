@@ -133,6 +133,8 @@ namespace CameraKsPropertyHelper
         Int32 Value{ get; };
     }
 
+
+
     // class to encapsulate a KSPROPERTY containing a KSPROPERTY_DESCRIPTION, a KSPROPERTY_MEMBERSHEADER and a KSPROPERTY_STEPPING_LONG
     runtimeclass VidCapVideoProcAmpPropetyPayload : [default] IVidCapVideoProcAmpPropetyPayload
     {
@@ -151,7 +153,7 @@ namespace CameraKsPropertyHelper
     runtimeclass BasicExtendedPropertyPayload : [default] IExtendedPropertyPayload
     {
     }
-
+  
     // class to encapsulate and access a KSCAMERA_EXTENDEDPROP_BACKGROUNDSEGMENTATION_CONFIGCAPS
     runtimeclass BackgroundSegmentationConfigCaps
     {
@@ -178,7 +180,31 @@ namespace CameraKsPropertyHelper
     {
         Windows.Foundation.Collections.IVectorView<BackgroundSegmentationConfigCaps> ConfigCaps { get; };
     }
+    runtimeclass DigitalWindowConfigCaps
+    {
+        Int64 ResolutionX{ get; };
+        Int64 ResolutionY{ get; };
+        Int64 PorchTop{ get; };
+        Int64 PorchLeft{ get; };
+        Int64 PorchBottom{ get; };
+        Int64 PorchRight{ get; };
+        Int64 NonUpscalingWindowSize{ get; };
+        Int64 MinWindowSize{ get; };
+        Int64 MaxWindowSize{ get; };
+  
+    }
+    
+    runtimeclass DigitalWindowConfigCapsPayload : [default] IExtendedPropertyPayload
+    {
+        Windows.Foundation.Collections.IVectorView<DigitalWindowConfigCaps> ConfigCaps { get; };
+    }
 
+    runtimeclass PhotoModePropertyPayload : [default] IExtendedPropertyPayload
+    {
+        Int64 RequestedHistoryFrames { get; };
+        Int64 MaxHistoryFrames { get; };
+        Int64 SubMode { get; };
+    }
 
     // refer to KSCAMERA_MetadataId
     enum FrameMetadataKind
@@ -223,6 +249,8 @@ namespace CameraKsPropertyHelper
         Rectd ROI;
         Int32 Confidence;
     };
+
+
 
     runtimeclass FaceDetectionMetadata : [default] IMetadataPayload
     {

@@ -30,6 +30,6 @@ namespace winrt::CameraKsPropertyHelper::implementation
 
     private:
         Windows::Foundation::Collections::IVector<CameraKsPropertyHelper::BackgroundSegmentationConfigCaps> m_configCaps = single_threaded_vector<CameraKsPropertyHelper::BackgroundSegmentationConfigCaps>();
-        CameraKsPropertyHelper::ExtendedControlKind m_extendedControlKind;
+       
     };
 }

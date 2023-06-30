@@ -98,12 +98,7 @@ namespace winrt::CameraKsPropertyHelper::implementation
         KSCAMERA_EXTENDEDPROP_HEADER header;
         KSCAMERA_EXTENDEDPROP_VALUE value;
     };
-    struct KsKSPROPERTY_CAMERACONTROL_EXTENDED_PHOTOMODPayload
-    {
-        KSCAMERA_EXTENDEDPROP_HEADER header;
-        KSCAMERA_EXTENDEDPROP_PHOTOMODE value;
-    };
-
+  
     // wrapper for a payload returned when the driver supports the KSPROPERTY_CAMERACONTROL_EXTENDED_BACKGROUNDSEGMENTATION 
     // camera extended property with the KSCAMERA_EXTENDEDPROP_BACKGROUNDSEGMENTATION_MASK capability
     struct KsBackgroundSegmentationPropPayload

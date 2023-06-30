@@ -11,6 +11,7 @@
 #include "FaceDetectionMetadata.h"
 #include "DigitalWindowMetadata.h"
 #include "VidCapVideoProcAmpPropetyPayload.h"
+#include "DigitalWindowConfigCapsPayload.h"
 
 namespace winrt::CameraKsPropertyHelper::implementation
 {
@@ -209,8 +210,12 @@ namespace winrt::CameraKsPropertyHelper::implementation
                 payload = make<BasicExtendedPropertyPayload>(propertyValueResult, extendedControlKind);
                 break;
             }
-
-
+            case ExtendedControlKind::KSPROPERTY_CAMERACONTROL_EXTENDED_DIGITALWINDOW_CONFIGCAPS:
+            {
+                payload = make<DigitalWindowConfigCapsPayload>(propertyValueResult);
+                break;
+            }
+             
             default:
             {
                 payload = make<BasicExtendedPropertyPayload>(propertyValueResult, extendedControlKind);
